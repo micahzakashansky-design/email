@@ -34,7 +34,7 @@ function EmailApp() {
   const currentEmail = selectedEmail ? emails.find(e => e.id === selectedEmail.id) : null;
 
   return (
-    <div className={`flex flex-col h-screen transition-colors duration-500 overflow-hidden`}>
+    <div className={`flex flex-col h-screen transition-colors duration-500 overflow-hidden bg-gray-50 dark:bg-gray-950`}>
       <Header activeTab={activeTab} setActiveTab={setActiveTab} />
 
       <main className="flex flex-1 overflow-hidden">
