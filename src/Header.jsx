@@ -26,9 +26,9 @@ const Header = ({ activeTab, setActiveTab }) => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center px-6 py-2 mx-1 transition-all relative group rounded-xl ${
+              className={`flex items-center px-6 py-2 mx-2 transition-all relative group rounded-xl ${
                 activeTab === tab.id
-                  ? 'text-blue-600 dark:text-blue-400 bg-white dark:bg-gray-800 shadow-md ring-2 ring-blue-500/50 scale-105 z-20'
+                  ? 'text-blue-600 dark:text-blue-400 bg-white dark:bg-gray-800 shadow-xl ring-2 ring-blue-500 scale-110 z-20 translate-y-1'
                   : 'text-gray-600 dark:text-gray-400 hover:bg-white/10'
               }`}
             >

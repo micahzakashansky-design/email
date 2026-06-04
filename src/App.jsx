@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
-import Sidebar from './Sidebar';
+import Header from './Header';
 import EmailList from './EmailList';
 import EmailDetail from './EmailDetail';
 import { useEmails, EmailProvider } from './EmailContext';
+import { AnimatePresence, motion } from 'framer-motion';
 
 function EmailApp() {
-  const { emails, toggleImportance, markDone, markLater, moveToInbox } = useEmails();
-  const [activeTab, setActiveTab] = useState('inbox');
+  const { emails, toggleImportance, markDone, markLater, moveToInbox, theme } = useEmails();
+  const [activeTab, setActiveTab] = useState('important');
   const [selectedEmail, setSelectedEmail] = useState(null);
 
   const filteredEmails = emails.filter((email) => {
     switch (activeTab) {
-      case 'inbox':
-        return email.status === 'inbox';
       case 'important':
         return email.isImportant && email.status === 'inbox';
       case 'non-important':
@@ -22,7 +21,7 @@ function EmailApp() {
       case 'later':
         return email.status === 'later';
       case 'all':
-        return email.status !== 'deleted'; // We haven't implemented delete, so just show all
+        return email.status !== 'deleted';
       default:
         return true;
     }
@@ -32,27 +31,33 @@ function EmailApp() {
     setSelectedEmail(email);
   };
 
-  // Find the actual email object in the state to ensure we have the latest data
   const currentEmail = selectedEmail ? emails.find(e => e.id === selectedEmail.id) : null;
 
   return (
-    <div className="flex h-screen bg-white">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-      <EmailList
-        emails={filteredEmails}
-        onSelect={handleSelectEmail}
-        selectedId={currentEmail?.id}
-        onToggleImportance={toggleImportance}
-        onMarkDone={markDone}
-        onMarkLater={markLater}
-        onMoveToInbox={moveToInbox}
-      />
-      <EmailDetail
-        email={currentEmail}
-        onToggleImportance={toggleImportance}
-        onMarkDone={markDone}
-        onMarkLater={markLater}
-      />
+    <div className={`flex flex-col h-screen transition-colors duration-500 overflow-hidden bg-gray-50 dark:bg-gray-950`}>
+      <Header activeTab={activeTab} setActiveTab={setActiveTab} />
+
+      <main className="flex flex-1 overflow-hidden">
+        <EmailList
+          emails={filteredEmails}
+          onSelect={handleSelectEmail}
+          selectedId={currentEmail?.id}
+          onToggleImportance={toggleImportance}
+          onMarkDone={markDone}
+          onMarkLater={markLater}
+          onMoveToInbox={moveToInbox}
+        />
+
+        <AnimatePresence mode="wait">
+          <EmailDetail
+            key={currentEmail?.id || 'empty'}
+            email={currentEmail}
+            onToggleImportance={toggleImportance}
+            onMarkDone={markDone}
+            onMarkLater={markLater}
+          />
+        </AnimatePresence>
+      </main>
     </div>
   );
 }
