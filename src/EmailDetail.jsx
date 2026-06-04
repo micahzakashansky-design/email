@@ -23,12 +23,18 @@ const EmailDetail = ({ email, onToggleImportance, onMarkDone, onMarkLater }) => 
   }
 
   const handleMarkLater = () => {
-    if (showDatePicker && dueDate) {
-      onMarkLater(email.id, dueDate);
-      setShowDatePicker(false);
-      setDueDate('');
+    if (email.status !== 'later') {
+      // Just moving to the "Do Later" tab
+      onMarkLater(email.id);
     } else {
-      setShowDatePicker(true);
+      // Already in "Do Later", toggle date picker
+      if (showDatePicker && dueDate) {
+        onMarkLater(email.id, dueDate);
+        setShowDatePicker(false);
+        setDueDate('');
+      } else {
+        setShowDatePicker(true);
+      }
     }
   };
 
@@ -56,7 +62,9 @@ const EmailDetail = ({ email, onToggleImportance, onMarkDone, onMarkLater }) => 
               className="flex items-center space-x-2 px-4 py-2 bg-blue-500/80 backdrop-blur-md text-white rounded-xl hover:bg-blue-600 transition-all hover:shadow-lg active:scale-95"
             >
               <Clock size={18} />
-              <span className="font-medium text-sm">{showDatePicker ? 'Set Due Date' : 'Do Later'}</span>
+              <span className="font-medium text-sm">
+                {email.status !== 'later' ? 'Do Later' : (showDatePicker ? 'Save Date' : (email.dueDate ? 'Edit Date' : 'Set Due Date'))}
+              </span>
             </button>
 
             <AnimatePresence>

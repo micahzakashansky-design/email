@@ -26,18 +26,14 @@ const Header = ({ activeTab, setActiveTab }) => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center px-6 py-4 hover:bg-white/10 transition-all relative h-full group ${
-                activeTab === tab.id ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'
+              className={`flex items-center px-6 py-2 mx-1 transition-all relative group rounded-xl ${
+                activeTab === tab.id
+                  ? 'text-blue-600 dark:text-blue-400 bg-white dark:bg-gray-800 shadow-md ring-2 ring-blue-500/50 scale-105 z-20'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-white/10'
               }`}
             >
               <Icon size={18} className={`mr-2 transition-transform duration-300 ${activeTab === tab.id ? 'scale-110' : 'group-hover:scale-110'}`} />
               <span className="font-medium">{tab.label}</span>
-              {activeTab === tab.id && (
-                <motion.div
-                  layoutId="activeTab"
-                  className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-t-full"
-                />
-              )}
             </button>
           );
         })}

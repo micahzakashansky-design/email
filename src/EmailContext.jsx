@@ -38,14 +38,23 @@ export const EmailProvider = ({ children }) => {
 
   const markDone = (id) => {
     setEmails(prev => prev.map(email =>
-      email.id === id ? { ...email, status: 'done' } : email
+      email.id === id ? { ...email, status: 'done', dueDate: null } : email
     ));
   };
 
   const markLater = (id, dueDate = null) => {
-    setEmails(prev => prev.map(email =>
-      email.id === id ? { ...email, status: 'later', dueDate: dueDate } : email
-    ));
+    setEmails(prev => prev.map(email => {
+      if (email.id === id) {
+        // If we're providing a date, update it.
+        // If we're just moving to later, don't clear existing date if it has one.
+        return {
+          ...email,
+          status: 'later',
+          dueDate: dueDate !== null ? dueDate : email.dueDate
+        };
+      }
+      return email;
+    }));
   };
 
   const moveToInbox = (id) => {
