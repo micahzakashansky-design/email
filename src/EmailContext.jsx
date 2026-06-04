@@ -59,7 +59,7 @@ export const EmailProvider = ({ children }) => {
 
   const moveToInbox = (id) => {
       setEmails(prev => prev.map(email =>
-      email.id === id ? { ...email, status: 'inbox' } : email
+      email.id === id ? { ...email, status: 'inbox', dueDate: null } : email
     ));
   }
 
