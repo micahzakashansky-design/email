@@ -87,6 +87,7 @@ const Header = ({ activeTab, setActiveTab }) => {
           disabled={isLoading}
           className={`p-2 rounded-full hover:bg-white/10 transition-colors text-gray-600 dark:text-gray-400 ${isLoading ? 'animate-spin' : ''}`}
           title="Refresh Gmail"
+          aria-label="Refresh Gmail"
         >
           <RefreshCw size={20} />
         </button>
@@ -95,6 +96,8 @@ const Header = ({ activeTab, setActiveTab }) => {
           onClick={() => setShowSettings(!showSettings)}
           className="p-2 rounded-full hover:bg-white/10 transition-colors text-gray-600 dark:text-gray-400"
           title="Settings"
+          aria-label="Settings"
+          aria-expanded={showSettings}
         >
           <Settings size={20} />
         </button>
@@ -102,6 +105,8 @@ const Header = ({ activeTab, setActiveTab }) => {
         <button
           onClick={toggleTheme}
           className="p-2 rounded-full hover:bg-white/10 transition-colors text-gray-600 dark:text-gray-400"
+          title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+          aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
         >
           {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
         </button>

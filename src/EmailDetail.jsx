@@ -79,7 +79,7 @@ const EmailDetail = ({ email, onToggleImportance, onMarkDone, onMarkLater }) => 
                     <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                       Schedule for later
                     </label>
-                    <button onClick={() => setShowDatePicker(false)} className="text-gray-400 hover:text-gray-600">
+                    <button onClick={() => setShowDatePicker(false)} className="text-gray-400 hover:text-gray-600" aria-label="Close date picker">
                       <X size={16} />
                     </button>
                   </div>
@@ -104,6 +104,8 @@ const EmailDetail = ({ email, onToggleImportance, onMarkDone, onMarkLater }) => 
         <button
           onClick={() => onToggleImportance(email.id)}
           className={`${email.isImportant ? 'text-yellow-500' : 'text-gray-400'} hover:text-yellow-600 p-2 transition-all hover:scale-110`}
+          title={email.isImportant ? "Mark as non-important" : "Mark as important"}
+          aria-label={email.isImportant ? "Mark as non-important" : "Mark as important"}
         >
           <Star size={24} fill={email.isImportant ? 'currentColor' : 'none'} />
         </button>
