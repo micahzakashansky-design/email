@@ -3,6 +3,10 @@ import { MOCK_EMAILS } from './mockData';
 
 const EmailContext = createContext();
 
+// Check if we are running in Electron
+const isElectron = window && window.process && window.process.type;
+const ipcRenderer = isElectron ? window.require('electron').ipcRenderer : null;
+
 export const EmailProvider = ({ children }) => {
   const [emails, setEmails] = useState(() => {
     const saved = localStorage.getItem('emails');
@@ -12,6 +16,8 @@ export const EmailProvider = ({ children }) => {
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('theme') || 'light';
   });
+
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('emails', JSON.stringify(emails));
@@ -30,6 +36,26 @@ export const EmailProvider = ({ children }) => {
     setTheme(prev => prev === 'light' ? 'dark' : 'light');
   };
 
+  const fetchGmailEmails = async () => {
+    if (!ipcRenderer) return;
+    setIsLoading(true);
+    try {
+      const gmailEmails = await ipcRenderer.invoke('gmail:fetch-emails');
+      if (gmailEmails && gmailEmails.length > 0) {
+        // Merge with existing emails, avoiding duplicates
+        setEmails(prev => {
+          const existingIds = new Set(prev.map(e => e.gmailId || e.id));
+          const newEmails = gmailEmails.filter(e => !existingIds.has(e.gmailId));
+          return [...newEmails, ...prev];
+        });
+      }
+    } catch (error) {
+      console.error('Failed to fetch Gmail emails:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const toggleImportance = (id) => {
     setEmails(prev => prev.map(email =>
       email.id === id ? { ...email, isImportant: !email.isImportant } : email
@@ -45,8 +71,6 @@ export const EmailProvider = ({ children }) => {
   const markLater = (id, dueDate = null) => {
     setEmails(prev => prev.map(email => {
       if (email.id === id) {
-        // If we're providing a date, update it.
-        // If we're just moving to later, don't clear existing date if it has one.
         return {
           ...email,
           status: 'later',
@@ -64,7 +88,10 @@ export const EmailProvider = ({ children }) => {
   }
 
   return (
-    <EmailContext.Provider value={{ emails, theme, toggleTheme, toggleImportance, markDone, markLater, moveToInbox }}>
+    <EmailContext.Provider value={{
+      emails, theme, isLoading,
+      toggleTheme, toggleImportance, markDone, markLater, moveToInbox, fetchGmailEmails
+    }}>
       {children}
     </EmailContext.Provider>
   );
