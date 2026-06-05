@@ -8,13 +8,12 @@ const Header = ({ activeTab, setActiveTab }) => {
   const [showSettings, setShowSettings] = useState(false);
   const [credentials, setCredentials] = useState({ clientId: '', clientSecret: '' });
 
-  const isElectron = window && window.process && window.process.type;
-  const ipcRenderer = isElectron ? window.require('electron').ipcRenderer : null;
+  const electronAPI = window.electronAPI;
 
   useEffect(() => {
     async function loadCredentials() {
-      if (ipcRenderer) {
-        const savedCreds = await ipcRenderer.invoke('gmail:get-credentials');
+      if (electronAPI) {
+        const savedCreds = await electronAPI.invoke('gmail:get-credentials');
         if (savedCreds) {
           setCredentials(savedCreds);
         }
@@ -34,20 +33,20 @@ const Header = ({ activeTab, setActiveTab }) => {
   ];
 
   const handleSaveCredentials = async () => {
-    if (ipcRenderer) {
-      await ipcRenderer.invoke('gmail:set-credentials', credentials);
+    if (electronAPI) {
+      await electronAPI.invoke('gmail:set-credentials', credentials);
     }
   };
 
   const handleAuthenticate = async () => {
-    if (!ipcRenderer) return;
+    if (!electronAPI) return;
     if (!credentials.clientId || !credentials.clientSecret) {
         alert('Please provide Client ID and Client Secret first.');
         return;
     }
     await handleSaveCredentials();
     try {
-        await ipcRenderer.invoke('gmail:authenticate');
+        await electronAPI.invoke('gmail:authenticate');
         setShowSettings(false);
         fetchGmailEmails();
     } catch (error) {

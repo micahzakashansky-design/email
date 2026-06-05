@@ -3,9 +3,8 @@ import { MOCK_EMAILS } from './mockData';
 
 const EmailContext = createContext();
 
-// Check if we are running in Electron
-const isElectron = window && window.process && window.process.type;
-const ipcRenderer = isElectron ? window.require('electron').ipcRenderer : null;
+// Check if we are running in Electron with the secure API
+const electronAPI = window.electronAPI;
 
 export const EmailProvider = ({ children }) => {
   const [emails, setEmails] = useState(() => {
@@ -37,10 +36,10 @@ export const EmailProvider = ({ children }) => {
   };
 
   const fetchGmailEmails = async () => {
-    if (!ipcRenderer) return;
+    if (!electronAPI) return;
     setIsLoading(true);
     try {
-      const gmailEmails = await ipcRenderer.invoke('gmail:fetch-emails');
+      const gmailEmails = await electronAPI.invoke('gmail:fetch-emails');
       if (gmailEmails && gmailEmails.length > 0) {
         // Merge with existing emails, avoiding duplicates
         setEmails(prev => {
