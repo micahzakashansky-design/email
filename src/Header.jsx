@@ -67,7 +67,9 @@ const Header = ({ activeTab, setActiveTab }) => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex flex-col items-center justify-center px-6 py-2 transition-all relative group rounded-full ${
+                aria-label={`View ${tab.label} emails`}
+                aria-current={isActive ? 'page' : undefined}
+                className={`flex flex-col items-center justify-center px-6 py-2 transition-all relative group rounded-full focus-visible:ring-2 focus-visible:ring-blue-500 outline-none ${
                   isActive
                     ? 'bg-gray-100 dark:bg-white/10 text-black dark:text-white'
                     : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5'
@@ -92,23 +94,27 @@ const Header = ({ activeTab, setActiveTab }) => {
             <button
                 onClick={fetchGmailEmails}
                 disabled={isLoading}
-                className={`p-3 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors text-gray-500 dark:text-gray-400 ${isLoading ? 'animate-spin' : ''}`}
+                className={`p-3 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors text-gray-500 dark:text-gray-400 focus-visible:ring-2 focus-visible:ring-blue-500 outline-none ${isLoading ? 'animate-spin' : ''}`}
                 title="Refresh Gmail"
+                aria-label="Refresh Gmail"
             >
                 <RefreshCw size={20} />
             </button>
 
             <button
                 onClick={() => setShowSettings(!showSettings)}
-                className={`p-3 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors ${showSettings ? 'bg-gray-100 dark:bg-white/10 text-black dark:text-white' : 'text-gray-500 dark:text-gray-400'}`}
+                className={`p-3 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 outline-none ${showSettings ? 'bg-gray-100 dark:bg-white/10 text-black dark:text-white' : 'text-gray-500 dark:text-gray-400'}`}
                 title="Settings"
+                aria-label="Settings"
             >
                 <Settings size={20} />
             </button>
 
             <button
                 onClick={toggleTheme}
-                className="p-3 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors text-gray-500 dark:text-gray-400"
+                className="p-3 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors text-gray-500 dark:text-gray-400 focus-visible:ring-2 focus-visible:ring-blue-500 outline-none"
+                aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+                title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
             >
                 {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
             </button>
@@ -128,15 +134,20 @@ const Header = ({ activeTab, setActiveTab }) => {
             >
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-bold">Gmail Setup</h3>
-                    <button onClick={() => setShowSettings(false)} className="text-gray-400 hover:text-gray-600">
+                    <button
+                        onClick={() => setShowSettings(false)}
+                        className="text-gray-400 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-blue-500 rounded-full outline-none"
+                        aria-label="Close settings"
+                    >
                         <X size={18} />
                     </button>
                 </div>
 
                 <div className="space-y-4">
                     <div>
-                        <label className="block text-xs font-semibold mb-1 opacity-60 uppercase">Client ID</label>
+                        <label htmlFor="clientId" className="block text-xs font-semibold mb-1 opacity-60 uppercase">Client ID</label>
                         <input
+                            id="clientId"
                             type="text"
                             placeholder="Google Client ID"
                             value={credentials.clientId}
@@ -145,8 +156,9 @@ const Header = ({ activeTab, setActiveTab }) => {
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-semibold mb-1 opacity-60 uppercase">Client Secret</label>
+                        <label htmlFor="clientSecret" className="block text-xs font-semibold mb-1 opacity-60 uppercase">Client Secret</label>
                         <input
+                            id="clientSecret"
                             type="password"
                             placeholder="Google Client Secret"
                             value={credentials.clientSecret}
@@ -161,7 +173,7 @@ const Header = ({ activeTab, setActiveTab }) => {
                         </p>
                         <button
                             onClick={handleAuthenticate}
-                            className="w-full py-3 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 text-sm flex items-center justify-center"
+                            className="w-full py-3 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 text-sm flex items-center justify-center focus-visible:ring-2 focus-visible:ring-blue-500 outline-none"
                         >
                             <Globe size={18} className="mr-2" />
                             Connect Account

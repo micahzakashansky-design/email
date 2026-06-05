@@ -32,7 +32,16 @@ const EmailList = ({ emails, onSelect, selectedId, onToggleImportance, onMarkDon
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 onClick={() => onSelect(email)}
-                className={`p-4 border-b border-white/10 cursor-pointer hover:bg-white/5 transition-all group relative ${
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onSelect(email);
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-label={`Email from ${email.from}, subject: ${email.subject}`}
+                className={`p-4 border-b border-white/10 cursor-pointer hover:bg-white/5 transition-all group relative focus-visible:ring-2 focus-visible:ring-blue-500 outline-none ${
                   selectedId === email.id ? 'bg-blue-500/10 dark:bg-blue-400/10 ring-1 ring-blue-500/30' : ''
                 }`}
               >
@@ -57,18 +66,20 @@ const EmailList = ({ emails, onSelect, selectedId, onToggleImportance, onMarkDon
                 <div className="flex items-center space-x-3" onClick={(e) => e.stopPropagation()}>
                   <button
                     onClick={() => onToggleImportance(email.id)}
-                    className={`${email.isImportant ? 'text-yellow-500 opacity-100' : 'text-gray-400 hover:text-yellow-500 opacity-0 group-hover:opacity-100'} transition-all duration-200`}
+                    className={`${email.isImportant ? 'text-yellow-500 opacity-100' : 'text-gray-400 hover:text-yellow-500 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'} transition-all duration-200`}
                     title={email.isImportant ? "Mark as non-important" : "Mark as important"}
+                    aria-label={email.isImportant ? "Mark as non-important" : "Mark as important"}
                   >
                     <Star size={14} fill={email.isImportant ? 'currentColor' : 'none'} />
                   </button>
                   <div className="flex items-center space-x-3">
                     {email.status === 'inbox' && (
-                      <div className="flex items-center space-x-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center space-x-3 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
                         <button
                           onClick={() => onMarkDone(email.id)}
                           className="text-gray-400 hover:text-green-500 transition-colors"
                           title="Done"
+                          aria-label="Mark as Done"
                         >
                           <CheckCircle size={14} />
                         </button>
@@ -76,18 +87,20 @@ const EmailList = ({ emails, onSelect, selectedId, onToggleImportance, onMarkDon
                           onClick={() => onMarkLater(email.id)}
                           className="text-gray-400 hover:text-blue-500 transition-colors"
                           title="Do Later"
+                          aria-label="Mark for Later"
                         >
                           <Clock size={14} />
                         </button>
                       </div>
                     )}
                     {(email.status === 'later' || email.status === 'done') && (
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-3">
+                      <div className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity flex items-center space-x-3">
                         {email.status === 'later' && (
                           <button
                             onClick={() => onMarkDone(email.id)}
                             className="text-gray-400 hover:text-green-500 transition-colors"
                             title="Done"
+                            aria-label="Mark as Done"
                           >
                             <CheckCircle size={14} />
                           </button>
@@ -96,6 +109,7 @@ const EmailList = ({ emails, onSelect, selectedId, onToggleImportance, onMarkDon
                           onClick={() => onMoveToInbox(email.id)}
                           className="text-gray-400 hover:text-blue-500 transition-colors"
                           title="Move to Inbox"
+                          aria-label="Move to Inbox"
                         >
                           <Undo size={14} />
                         </button>

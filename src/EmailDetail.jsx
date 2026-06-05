@@ -50,7 +50,8 @@ const EmailDetail = ({ email, onToggleImportance, onMarkDone, onMarkLater }) => 
         <div className="flex space-x-3">
           <button
             onClick={() => onMarkDone(email.id)}
-            className="flex items-center space-x-2 px-4 py-2 bg-green-500/80 backdrop-blur-md text-white rounded-xl hover:bg-green-600 transition-all hover:shadow-lg active:scale-95"
+            className="flex items-center space-x-2 px-4 py-2 bg-green-500/80 backdrop-blur-md text-white rounded-xl hover:bg-green-600 transition-all hover:shadow-lg active:scale-95 focus-visible:ring-2 focus-visible:ring-green-500 outline-none"
+            aria-label="Mark email as done"
           >
             <CheckCircle size={18} />
             <span className="font-medium text-sm">Done</span>
@@ -59,7 +60,8 @@ const EmailDetail = ({ email, onToggleImportance, onMarkDone, onMarkLater }) => 
           <div className="relative">
             <button
               onClick={handleMarkLater}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-500/80 backdrop-blur-md text-white rounded-xl hover:bg-blue-600 transition-all hover:shadow-lg active:scale-95"
+              className="flex items-center space-x-2 px-4 py-2 bg-blue-500/80 backdrop-blur-md text-white rounded-xl hover:bg-blue-600 transition-all hover:shadow-lg active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 outline-none"
+              aria-label={email.status !== 'later' ? 'Move to Do Later' : (email.dueDate ? 'Edit due date' : 'Set due date')}
             >
               <Clock size={18} />
               <span className="font-medium text-sm">
@@ -76,14 +78,19 @@ const EmailDetail = ({ email, onToggleImportance, onMarkDone, onMarkLater }) => 
                   className="absolute top-full left-0 mt-3 p-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl z-20 w-64"
                 >
                   <div className="flex justify-between items-center mb-4">
-                    <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    <label htmlFor="due-date-input" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                       Schedule for later
                     </label>
-                    <button onClick={() => setShowDatePicker(false)} className="text-gray-400 hover:text-gray-600">
+                    <button
+                      onClick={() => setShowDatePicker(false)}
+                      className="text-gray-400 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-blue-500 rounded-full outline-none"
+                      aria-label="Close date picker"
+                    >
                       <X size={16} />
                     </button>
                   </div>
                   <input
+                    id="due-date-input"
                     type="date"
                     value={dueDate}
                     onChange={(e) => setDueDate(e.target.value)}
@@ -91,7 +98,7 @@ const EmailDetail = ({ email, onToggleImportance, onMarkDone, onMarkLater }) => 
                   />
                   <button
                     onClick={handleMarkLater}
-                    className="w-full py-2 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors"
+                    className="w-full py-2 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 outline-none"
                   >
                     Confirm
                   </button>
@@ -103,7 +110,8 @@ const EmailDetail = ({ email, onToggleImportance, onMarkDone, onMarkLater }) => 
 
         <button
           onClick={() => onToggleImportance(email.id)}
-          className={`${email.isImportant ? 'text-yellow-500' : 'text-gray-400'} hover:text-yellow-600 p-2 transition-all hover:scale-110`}
+          className={`${email.isImportant ? 'text-yellow-500' : 'text-gray-400'} hover:text-yellow-600 p-2 transition-all hover:scale-110 focus-visible:ring-2 focus-visible:ring-yellow-500 rounded-full outline-none`}
+          aria-label={email.isImportant ? "Mark as non-important" : "Mark as important"}
         >
           <Star size={24} fill={email.isImportant ? 'currentColor' : 'none'} />
         </button>
@@ -117,7 +125,7 @@ const EmailDetail = ({ email, onToggleImportance, onMarkDone, onMarkLater }) => 
             </h1>
             <div className="flex justify-between items-center text-sm">
               <div className="flex items-center">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold mr-3 shadow-md">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold mr-3 shadow-md" aria-hidden="true">
                     {email.from.charAt(0)}
                 </div>
                 <div>
