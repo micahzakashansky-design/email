@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Star, CheckCircle, Clock, Archive, Mail, Sun, Moon, RefreshCw, Settings, X } from 'lucide-react';
+import { Star, CheckCircle, Clock, Archive, Mail, Sun, Moon, RefreshCw, Settings, X, Globe } from 'lucide-react';
 import { useEmails } from './EmailContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Header = ({ activeTab, setActiveTab }) => {
   const { theme, toggleTheme, fetchGmailEmails, isLoading } = useEmails();
   const [showSettings, setShowSettings] = useState(false);
-  const [authCode, setAuthCode] = useState('');
   const [credentials, setCredentials] = useState({ clientId: '', clientSecret: '' });
 
   const isElectron = window && window.process && window.process.type;
@@ -40,23 +39,21 @@ const Header = ({ activeTab, setActiveTab }) => {
     }
   };
 
-  const handleConnectGmail = async () => {
+  const handleAuthenticate = async () => {
     if (!ipcRenderer) return;
-    await handleSaveCredentials();
-    const url = await ipcRenderer.invoke('gmail:get-auth-url');
-    if (url) {
-      window.require('electron').shell.openExternal(url);
-    } else {
-      alert('Please provide valid Client ID and Client Secret');
+    if (!credentials.clientId || !credentials.clientSecret) {
+        alert('Please provide Client ID and Client Secret first.');
+        return;
     }
-  };
-
-  const handleSetToken = async () => {
-    if (!ipcRenderer || !authCode) return;
-    await ipcRenderer.invoke('gmail:set-token', authCode);
-    setAuthCode('');
-    setShowSettings(false);
-    fetchGmailEmails();
+    await handleSaveCredentials();
+    try {
+        await ipcRenderer.invoke('gmail:authenticate');
+        setShowSettings(false);
+        fetchGmailEmails();
+    } catch (error) {
+        console.error('Authentication failed:', error);
+        alert('Authentication failed. Check console for details.');
+    }
   };
 
   return (
@@ -149,27 +146,14 @@ const Header = ({ activeTab, setActiveTab }) => {
 
                 <div className="pt-2">
                     <p className="text-xs mb-3 text-gray-500 dark:text-gray-400">
-                        1. Provide credentials above. 2. Click button to authorize. 3. Copy code back here.
+                        Provide your Desktop App credentials and click the button below. Login in your browser to complete.
                     </p>
                     <button
-                        onClick={handleConnectGmail}
-                        className="w-full py-2 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors mb-3 shadow-lg shadow-blue-500/30 text-sm"
+                        onClick={handleAuthenticate}
+                        className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 text-sm flex items-center justify-center"
                     >
-                        Get Authorization Code
-                    </button>
-                    <input
-                        type="text"
-                        placeholder="Paste code here..."
-                        value={authCode}
-                        onChange={(e) => setAuthCode(e.target.value)}
-                        className="w-full bg-white/50 dark:bg-black/20 border border-white/30 rounded-xl p-2 mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm"
-                    />
-                    <button
-                        onClick={handleSetToken}
-                        disabled={!authCode}
-                        className="w-full py-2 bg-purple-600 text-white rounded-xl font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 shadow-lg shadow-purple-500/30 text-sm"
-                    >
-                        Complete Setup
+                        <Globe size={18} className="mr-2" />
+                        Connect Gmail Account
                     </button>
                 </div>
             </div>

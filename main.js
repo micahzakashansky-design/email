@@ -23,12 +23,8 @@ function createWindow() {
 }
 
 // IPC Handlers for Gmail
-ipcMain.handle('gmail:get-auth-url', () => {
-  return gmailService.getAuthUrl();
-});
-
-ipcMain.handle('gmail:set-token', async (event, code) => {
-  return await gmailService.setToken(code);
+ipcMain.handle('gmail:authenticate', async () => {
+  return await gmailService.authenticate();
 });
 
 ipcMain.handle('gmail:get-credentials', () => {
@@ -41,7 +37,7 @@ ipcMain.handle('gmail:get-credentials', () => {
 ipcMain.handle('gmail:set-credentials', (event, { clientId, clientSecret }) => {
   store.set('GMAIL_CLIENT_ID', clientId);
   store.set('GMAIL_CLIENT_SECRET', clientSecret);
-  gmailService.init(); // Re-initialize with new credentials
+  gmailService.init();
   return true;
 });
 

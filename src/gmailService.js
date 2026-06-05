@@ -1,8 +1,11 @@
 const { google } = require('googleapis');
 const Store = require('electron-store');
+const http = require('http');
+const url = require('url');
 
 const store = new Store();
-const REDIRECT_URI = 'urn:ietf:wg:oauth:2.0:oob';
+const PORT = 42813; // Random high port for loopback
+const REDIRECT_URI = `http://localhost:${PORT}`;
 
 const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly', 'https://www.googleapis.com/auth/gmail.modify'];
 
@@ -25,29 +28,47 @@ class GmailService {
     }
   }
 
-  getAuthUrl() {
-    if (!this.oAuth2Client) {
-      this.init(); // Try to re-init in case credentials were just set
-    }
-    if (!this.oAuth2Client) return null;
-
-    return this.oAuth2Client.generateAuthUrl({
-      access_type: 'offline',
-      scope: SCOPES,
-    });
-  }
-
-  async setToken(code) {
+  async authenticate() {
     if (!this.oAuth2Client) this.init();
-    const { tokens } = await this.oAuth2Client.getToken(code);
-    this.oAuth2Client.setCredentials(tokens);
-    store.set('GMAIL_TOKEN', tokens);
-    return tokens;
+    if (!this.oAuth2Client) throw new Error('Provide Client ID and Secret first');
+
+    return new Promise((resolve, reject) => {
+      const server = http.createServer(async (req, res) => {
+        try {
+          if (req.url.indexOf('/?code=') > -1) {
+            const qs = new url.URL(req.url, REDIRECT_URI).searchParams;
+            const code = qs.get('code');
+            res.end('Authentication successful! You can close this tab.');
+            server.destroy();
+
+            const { tokens } = await this.oAuth2Client.getToken(code);
+            this.oAuth2Client.setCredentials(tokens);
+            store.set('GMAIL_TOKEN', tokens);
+            resolve(tokens);
+          }
+        } catch (e) {
+          reject(e);
+        }
+      }).listen(PORT, () => {
+        const authUrl = this.oAuth2Client.generateAuthUrl({
+          access_type: 'offline',
+          scope: SCOPES,
+        });
+        require('electron').shell.openExternal(authUrl);
+      });
+
+      // Simple destroy helper
+      server.destroy = () => {
+        server.close();
+      };
+    });
   }
 
   async listMessages() {
     if (!this.oAuth2Client) this.init();
-    if (!this.oAuth2Client) throw new Error('Not authenticated');
+    if (!this.oAuth2Client || !this.oAuth2Client.credentials.access_token) {
+        throw new Error('Not authenticated');
+    }
 
     const gmail = google.gmail({ version: 'v1', auth: this.oAuth2Client });
     const res = await gmail.users.messages.list({ userId: 'me', maxResults: 20 });
