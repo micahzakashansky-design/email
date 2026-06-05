@@ -2,10 +2,11 @@ const { google } = require('googleapis');
 const Store = require('electron-store');
 const http = require('http');
 const url = require('url');
+const { shell } = require('electron');
 
 const store = new Store();
 const PORT = 42813; // Random high port for loopback
-const REDIRECT_URI = `http://localhost:${PORT}`;
+const REDIRECT_URI = `http://127.0.0.1:${PORT}`;
 
 const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly', 'https://www.googleapis.com/auth/gmail.modify'];
 
@@ -36,31 +37,45 @@ class GmailService {
       const server = http.createServer(async (req, res) => {
         try {
           if (req.url.indexOf('/?code=') > -1) {
-            const qs = new url.URL(req.url, REDIRECT_URI).searchParams;
+            const qs = new url.URL(req.url, `http://127.0.0.1:${PORT}`).searchParams;
             const code = qs.get('code');
             res.end('Authentication successful! You can close this tab.');
-            server.destroy();
 
             const { tokens } = await this.oAuth2Client.getToken(code);
             this.oAuth2Client.setCredentials(tokens);
             store.set('GMAIL_TOKEN', tokens);
+
             resolve(tokens);
+            setTimeout(() => server.close(), 1000);
           }
         } catch (e) {
           reject(e);
         }
-      }).listen(PORT, () => {
-        const authUrl = this.oAuth2Client.generateAuthUrl({
-          access_type: 'offline',
-          scope: SCOPES,
-        });
-        require('electron').shell.openExternal(authUrl);
       });
 
-      // Simple destroy helper
-      server.destroy = () => {
-        server.close();
-      };
+      server.on('error', (err) => {
+        reject(err);
+      });
+
+      server.listen(PORT, '127.0.0.1', () => {
+        try {
+          const authUrl = this.oAuth2Client.generateAuthUrl({
+            access_type: 'offline',
+            scope: SCOPES,
+            prompt: 'consent'
+          });
+          console.log('Generated Auth URL:', authUrl);
+          shell.openExternal(authUrl).then(() => {
+            console.log('Opened external browser for auth');
+          }).catch(err => {
+            console.error('Failed to open external browser via shell.openExternal:', err);
+            reject(err);
+          });
+        } catch (authUrlError) {
+          console.error('Error generating auth URL:', authUrlError);
+          reject(authUrlError);
+        }
+      });
     });
   }
 

@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 const Header = ({ activeTab, setActiveTab }) => {
   const { theme, toggleTheme, fetchGmailEmails, isLoading } = useEmails();
   const [showSettings, setShowSettings] = useState(false);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [credentials, setCredentials] = useState({ clientId: '', clientSecret: '' });
 
   const isElectron = window && window.process && window.process.type;
@@ -45,6 +46,7 @@ const Header = ({ activeTab, setActiveTab }) => {
         alert('Please provide Client ID and Client Secret first.');
         return;
     }
+    setIsAuthenticating(true);
     await handleSaveCredentials();
     try {
         await ipcRenderer.invoke('gmail:authenticate');
@@ -52,7 +54,9 @@ const Header = ({ activeTab, setActiveTab }) => {
         fetchGmailEmails();
     } catch (error) {
         console.error('Authentication failed:', error);
-        alert('Authentication failed. Check console for details.');
+        alert('Authentication failed. If your browser didn\'t open automatically, please check your network or try again.');
+    } finally {
+        setIsAuthenticating(false);
     }
   };
 
@@ -161,10 +165,15 @@ const Header = ({ activeTab, setActiveTab }) => {
                         </p>
                         <button
                             onClick={handleAuthenticate}
-                            className="w-full py-3 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 text-sm flex items-center justify-center"
+                            disabled={isAuthenticating}
+                            className={`w-full py-3 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 text-sm flex items-center justify-center ${isAuthenticating ? 'opacity-70 cursor-not-allowed' : ''}`}
                         >
-                            <Globe size={18} className="mr-2" />
-                            Connect Account
+                            {isAuthenticating ? (
+                                <RefreshCw size={18} className="mr-2 animate-spin" />
+                            ) : (
+                                <Globe size={18} className="mr-2" />
+                            )}
+                            {isAuthenticating ? 'Connecting...' : 'Connect Account'}
                         </button>
                     </div>
                 </div>
