@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle, Clock, Star, Calendar, X } from 'lucide-react';
+import { CheckCircle, Clock, Star, Calendar, X, Mail } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -148,8 +148,5 @@ const EmailDetail = ({ email, onToggleImportance, onMarkDone, onMarkLater }) => 
     </motion.div>
   );
 };
-
-// Re-importing Mail for empty state
-import { Mail } from 'lucide-react';
 
 export default EmailDetail;
