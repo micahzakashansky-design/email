@@ -1,6 +1,8 @@
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
 const gmailService = require('./src/gmailService');
+const Store = require('electron-store');
+const store = new Store();
 
 function createWindow() {
   const isDev = process.env.NODE_ENV === 'development';
@@ -27,6 +29,20 @@ ipcMain.handle('gmail:get-auth-url', () => {
 
 ipcMain.handle('gmail:set-token', async (event, code) => {
   return await gmailService.setToken(code);
+});
+
+ipcMain.handle('gmail:get-credentials', () => {
+  return {
+    clientId: store.get('GMAIL_CLIENT_ID') || '',
+    clientSecret: store.get('GMAIL_CLIENT_SECRET') || ''
+  };
+});
+
+ipcMain.handle('gmail:set-credentials', (event, { clientId, clientSecret }) => {
+  store.set('GMAIL_CLIENT_ID', clientId);
+  store.set('GMAIL_CLIENT_SECRET', clientSecret);
+  gmailService.init(); // Re-initialize with new credentials
+  return true;
 });
 
 ipcMain.handle('gmail:fetch-emails', async () => {

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Star, CheckCircle, Clock, Archive, Mail, Sun, Moon, RefreshCw, Settings } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Star, CheckCircle, Clock, Archive, Mail, Sun, Moon, RefreshCw, Settings, X } from 'lucide-react';
 import { useEmails } from './EmailContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -7,9 +7,24 @@ const Header = ({ activeTab, setActiveTab }) => {
   const { theme, toggleTheme, fetchGmailEmails, isLoading } = useEmails();
   const [showSettings, setShowSettings] = useState(false);
   const [authCode, setAuthCode] = useState('');
+  const [credentials, setCredentials] = useState({ clientId: '', clientSecret: '' });
 
   const isElectron = window && window.process && window.process.type;
   const ipcRenderer = isElectron ? window.require('electron').ipcRenderer : null;
+
+  useEffect(() => {
+    async function loadCredentials() {
+      if (ipcRenderer) {
+        const savedCreds = await ipcRenderer.invoke('gmail:get-credentials');
+        if (savedCreds) {
+          setCredentials(savedCreds);
+        }
+      }
+    }
+    if (showSettings) {
+      loadCredentials();
+    }
+  }, [showSettings]);
 
   const tabs = [
     { id: 'important', label: 'Important', icon: Star },
@@ -19,11 +34,20 @@ const Header = ({ activeTab, setActiveTab }) => {
     { id: 'all', label: 'All Mail', icon: Archive },
   ];
 
+  const handleSaveCredentials = async () => {
+    if (ipcRenderer) {
+      await ipcRenderer.invoke('gmail:set-credentials', credentials);
+    }
+  };
+
   const handleConnectGmail = async () => {
     if (!ipcRenderer) return;
+    await handleSaveCredentials();
     const url = await ipcRenderer.invoke('gmail:get-auth-url');
     if (url) {
       window.require('electron').shell.openExternal(url);
+    } else {
+      alert('Please provide valid Client ID and Client Secret');
     }
   };
 
@@ -94,30 +118,61 @@ const Header = ({ activeTab, setActiveTab }) => {
             exit={{ opacity: 0, scale: 0.9, y: 10 }}
             className="absolute top-full right-4 mt-3 p-6 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl z-30 w-80 text-gray-800 dark:text-gray-100"
           >
-            <h3 className="text-lg font-bold mb-4">Connect Gmail</h3>
-            <p className="text-sm mb-4 text-gray-500 dark:text-gray-400">
-              Click the button below to authorize the app. Copy the provided code back here.
-            </p>
-            <button
-              onClick={handleConnectGmail}
-              className="w-full py-2 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors mb-4 shadow-lg shadow-blue-500/30"
-            >
-              Get Authorization Code
-            </button>
-            <input
-              type="text"
-              placeholder="Paste code here..."
-              value={authCode}
-              onChange={(e) => setAuthCode(e.target.value)}
-              className="w-full bg-white/50 dark:bg-black/20 border border-white/30 rounded-xl p-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-            />
-            <button
-              onClick={handleSetToken}
-              disabled={!authCode}
-              className="w-full py-2 bg-purple-600 text-white rounded-xl font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 shadow-lg shadow-purple-500/30"
-            >
-              Complete Setup
-            </button>
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-bold">Gmail Setup</h3>
+                <button onClick={() => setShowSettings(false)} className="text-gray-400 hover:text-gray-600">
+                    <X size={18} />
+                </button>
+            </div>
+
+            <div className="space-y-4">
+                <div>
+                    <label className="block text-xs font-semibold mb-1 opacity-60 uppercase">Client ID</label>
+                    <input
+                        type="text"
+                        placeholder="Google Client ID"
+                        value={credentials.clientId}
+                        onChange={(e) => setCredentials({ ...credentials, clientId: e.target.value })}
+                        className="w-full bg-white/50 dark:bg-black/20 border border-white/30 rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm"
+                    />
+                </div>
+                <div>
+                    <label className="block text-xs font-semibold mb-1 opacity-60 uppercase">Client Secret</label>
+                    <input
+                        type="password"
+                        placeholder="Google Client Secret"
+                        value={credentials.clientSecret}
+                        onChange={(e) => setCredentials({ ...credentials, clientSecret: e.target.value })}
+                        className="w-full bg-white/50 dark:bg-black/20 border border-white/30 rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm"
+                    />
+                </div>
+
+                <div className="pt-2">
+                    <p className="text-xs mb-3 text-gray-500 dark:text-gray-400">
+                        1. Provide credentials above. 2. Click button to authorize. 3. Copy code back here.
+                    </p>
+                    <button
+                        onClick={handleConnectGmail}
+                        className="w-full py-2 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors mb-3 shadow-lg shadow-blue-500/30 text-sm"
+                    >
+                        Get Authorization Code
+                    </button>
+                    <input
+                        type="text"
+                        placeholder="Paste code here..."
+                        value={authCode}
+                        onChange={(e) => setAuthCode(e.target.value)}
+                        className="w-full bg-white/50 dark:bg-black/20 border border-white/30 rounded-xl p-2 mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm"
+                    />
+                    <button
+                        onClick={handleSetToken}
+                        disabled={!authCode}
+                        className="w-full py-2 bg-purple-600 text-white rounded-xl font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 shadow-lg shadow-purple-500/30 text-sm"
+                    >
+                        Complete Setup
+                    </button>
+                </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
