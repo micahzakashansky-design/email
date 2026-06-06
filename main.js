@@ -31,19 +31,6 @@ ipcMain.handle('gmail:authenticate', async () => {
   return await gmailService.authenticate();
 });
 
-ipcMain.handle('gmail:get-credentials', () => {
-  return {
-    clientId: store.get('GMAIL_CLIENT_ID') || DEFAULT_CLIENT_ID,
-    clientSecret: store.get('GMAIL_CLIENT_SECRET') || DEFAULT_CLIENT_SECRET
-  };
-});
-
-ipcMain.handle('gmail:set-credentials', (event, { clientId, clientSecret }) => {
-  store.set('GMAIL_CLIENT_ID', clientId);
-  store.set('GMAIL_CLIENT_SECRET', clientSecret);
-  gmailService.init();
-  return true;
-});
 
 ipcMain.handle('gmail:fetch-emails', async () => {
   try {

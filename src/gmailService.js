@@ -20,8 +20,8 @@ class GmailService {
   }
 
   init() {
-    const clientId = store.get('GMAIL_CLIENT_ID') || DEFAULT_CLIENT_ID;
-    const clientSecret = store.get('GMAIL_CLIENT_SECRET') || DEFAULT_CLIENT_SECRET;
+    const clientId = DEFAULT_CLIENT_ID;
+    const clientSecret = DEFAULT_CLIENT_SECRET;
 
     if (clientId && clientSecret) {
       this.oAuth2Client = new google.auth.OAuth2(clientId, clientSecret, REDIRECT_URI);
