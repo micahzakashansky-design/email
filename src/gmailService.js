@@ -16,12 +16,13 @@ const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly', 'https://www.g
 class GmailService {
   constructor() {
     this.oAuth2Client = null;
+    this.server = null;
     this.init();
   }
 
   init() {
-    const clientId = DEFAULT_CLIENT_ID;
-    const clientSecret = DEFAULT_CLIENT_SECRET;
+    const clientId = store.get('GMAIL_CLIENT_ID') || DEFAULT_CLIENT_ID;
+    const clientSecret = store.get('GMAIL_CLIENT_SECRET') || DEFAULT_CLIENT_SECRET;
 
     if (clientId && clientSecret) {
       this.oAuth2Client = new google.auth.OAuth2(clientId, clientSecret, REDIRECT_URI);
@@ -29,19 +30,49 @@ class GmailService {
       if (token) {
         this.oAuth2Client.setCredentials(token);
       }
+    } else {
+      this.oAuth2Client = null;
     }
+  }
+
+  getCredentials() {
+    return {
+      clientId: store.get('GMAIL_CLIENT_ID') || DEFAULT_CLIENT_ID,
+      clientSecret: store.get('GMAIL_CLIENT_SECRET') || DEFAULT_CLIENT_SECRET
+    };
+  }
+
+  setCredentials(clientId, clientSecret) {
+    store.set('GMAIL_CLIENT_ID', clientId);
+    store.set('GMAIL_CLIENT_SECRET', clientSecret);
+    this.init();
   }
 
   async authenticate() {
     console.log('gmailService: Starting authentication');
+
+    // Close any existing server
+    if (this.server) {
+      this.server.close();
+      this.server = null;
+    }
+
     if (!this.oAuth2Client) this.init();
     if (!this.oAuth2Client) {
         console.error('gmailService: Authentication failed - Missing credentials');
-        throw new Error('OAuth2 credentials (Client ID and Secret) are missing. Please check your repository secrets.');
+        throw new Error('OAuth2 credentials (Client ID and Secret) are missing. Please configure them in Settings.');
     }
 
     return new Promise((resolve, reject) => {
-      const server = http.createServer(async (req, res) => {
+      const timeout = setTimeout(() => {
+        if (this.server) {
+          this.server.close();
+          this.server = null;
+          reject(new Error('Authentication timed out. Please try again.'));
+        }
+      }, 60000); // 1 minute timeout
+
+      this.server = http.createServer(async (req, res) => {
         try {
           if (req.url.indexOf('/?code=') > -1) {
             const qs = new url.URL(req.url, `http://127.0.0.1:${PORT}`).searchParams;
@@ -52,19 +83,26 @@ class GmailService {
             this.oAuth2Client.setCredentials(tokens);
             store.set('GMAIL_TOKEN', tokens);
 
+            clearTimeout(timeout);
             resolve(tokens);
-            setTimeout(() => server.close(), 1000);
+
+            const srv = this.server;
+            this.server = null;
+            setTimeout(() => srv.close(), 1000);
           }
         } catch (e) {
+          clearTimeout(timeout);
           reject(e);
         }
       });
 
-      server.on('error', (err) => {
+      this.server.on('error', (err) => {
+        clearTimeout(timeout);
+        this.server = null;
         reject(err);
       });
 
-      server.listen(PORT, '127.0.0.1', () => {
+      this.server.listen(PORT, '127.0.0.1', () => {
         try {
           const authUrl = this.oAuth2Client.generateAuthUrl({
             access_type: 'offline',
@@ -76,10 +114,20 @@ class GmailService {
             console.log('Opened external browser for auth');
           }).catch(err => {
             console.error('Failed to open external browser via shell.openExternal:', err);
+            clearTimeout(timeout);
+            if (this.server) {
+              this.server.close();
+              this.server = null;
+            }
             reject(err);
           });
         } catch (authUrlError) {
           console.error('Error generating auth URL:', authUrlError);
+          clearTimeout(timeout);
+          if (this.server) {
+            this.server.close();
+            this.server = null;
+          }
           reject(authUrlError);
         }
       });
