@@ -43,6 +43,14 @@ ipcMain.handle('gmail:authenticate', async () => {
   }
 });
 
+ipcMain.handle('gmail:get-credentials', async () => {
+  return gmailService.getCredentials();
+});
+
+ipcMain.handle('gmail:set-credentials', async (event, { clientId, clientSecret }) => {
+  gmailService.setCredentials(clientId, clientSecret);
+  return { success: true };
+});
 
 ipcMain.handle('gmail:fetch-emails', async () => {
   try {
