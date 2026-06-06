@@ -6,6 +6,9 @@ const { shell } = require('electron');
 
 const store = new Store();
 const PORT = 42813; // Random high port for loopback
+
+const DEFAULT_CLIENT_ID = process.env.GMAIL_CLIENT_ID || '';
+const DEFAULT_CLIENT_SECRET = process.env.GMAIL_CLIENT_SECRET || '';
 const REDIRECT_URI = `http://127.0.0.1:${PORT}`;
 
 const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly', 'https://www.googleapis.com/auth/gmail.modify'];
@@ -17,8 +20,8 @@ class GmailService {
   }
 
   init() {
-    const clientId = store.get('GMAIL_CLIENT_ID');
-    const clientSecret = store.get('GMAIL_CLIENT_SECRET');
+    const clientId = store.get('GMAIL_CLIENT_ID') || DEFAULT_CLIENT_ID;
+    const clientSecret = store.get('GMAIL_CLIENT_SECRET') || DEFAULT_CLIENT_SECRET;
 
     if (clientId && clientSecret) {
       this.oAuth2Client = new google.auth.OAuth2(clientId, clientSecret, REDIRECT_URI);

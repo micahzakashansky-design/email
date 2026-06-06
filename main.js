@@ -1,8 +1,12 @@
+require('dotenv').config();
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
 const gmailService = require('./src/gmailService');
 const Store = require('electron-store');
 const store = new Store();
+
+const DEFAULT_CLIENT_ID = process.env.GMAIL_CLIENT_ID || '';
+const DEFAULT_CLIENT_SECRET = process.env.GMAIL_CLIENT_SECRET || '';
 
 function createWindow() {
   const isDev = process.env.NODE_ENV === 'development';
@@ -29,8 +33,8 @@ ipcMain.handle('gmail:authenticate', async () => {
 
 ipcMain.handle('gmail:get-credentials', () => {
   return {
-    clientId: store.get('GMAIL_CLIENT_ID') || '',
-    clientSecret: store.get('GMAIL_CLIENT_SECRET') || ''
+    clientId: store.get('GMAIL_CLIENT_ID') || DEFAULT_CLIENT_ID,
+    clientSecret: store.get('GMAIL_CLIENT_SECRET') || DEFAULT_CLIENT_SECRET
   };
 });
 

@@ -42,11 +42,9 @@ const Header = ({ activeTab, setActiveTab }) => {
 
   const handleAuthenticate = async () => {
     if (!ipcRenderer) return;
-    if (!credentials.clientId || !credentials.clientSecret) {
-        alert('Please provide Client ID and Client Secret first.');
-        return;
-    }
+
     setIsAuthenticating(true);
+    // Only save if user manually edited them, but we want to ensure service is init
     await handleSaveCredentials();
     try {
         await ipcRenderer.invoke('gmail:authenticate');
@@ -71,7 +69,7 @@ const Header = ({ activeTab, setActiveTab }) => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex flex-col items-center justify-center w-24 py-2 transition-all relative group rounded-full ${
+                className={`flex flex-col items-center justify-center px-6 py-2 transition-all relative group rounded-full ${
                   isActive
                     ? 'bg-gray-100 dark:bg-white/10 text-black dark:text-white'
                     : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5'
@@ -101,6 +99,21 @@ const Header = ({ activeTab, setActiveTab }) => {
             >
                 <RefreshCw size={20} />
             </button>
+
+            {!showSettings && (
+              <button
+                  onClick={handleAuthenticate}
+                  disabled={isAuthenticating}
+                  className={`px-4 py-2 bg-blue-600 text-white rounded-full font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 text-xs flex items-center justify-center ${isAuthenticating ? 'opacity-70 cursor-not-allowed' : ''}`}
+              >
+                  {isAuthenticating ? (
+                      <RefreshCw size={14} className="mr-2 animate-spin" />
+                  ) : (
+                      <Globe size={14} className="mr-2" />
+                  )}
+                  {isAuthenticating ? 'Connecting...' : 'Connect Gmail'}
+              </button>
+            )}
 
             <button
                 onClick={() => setShowSettings(!showSettings)}
