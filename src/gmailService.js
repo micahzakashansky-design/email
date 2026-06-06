@@ -33,8 +33,12 @@ class GmailService {
   }
 
   async authenticate() {
+    console.log('gmailService: Starting authentication');
     if (!this.oAuth2Client) this.init();
-    if (!this.oAuth2Client) throw new Error('Provide Client ID and Secret first');
+    if (!this.oAuth2Client) {
+        console.error('gmailService: Authentication failed - Missing credentials');
+        throw new Error('OAuth2 credentials (Client ID and Secret) are missing. Please check your repository secrets.');
+    }
 
     return new Promise((resolve, reject) => {
       const server = http.createServer(async (req, res) => {

@@ -8,6 +8,10 @@ const store = new Store();
 const DEFAULT_CLIENT_ID = process.env.GMAIL_CLIENT_ID || '';
 const DEFAULT_CLIENT_SECRET = process.env.GMAIL_CLIENT_SECRET || '';
 
+console.log('Main process started.');
+console.log('GMAIL_CLIENT_ID present:', !!DEFAULT_CLIENT_ID);
+console.log('GMAIL_CLIENT_SECRET present:', !!DEFAULT_CLIENT_SECRET);
+
 function createWindow() {
   const isDev = process.env.NODE_ENV === 'development';
   const win = new BrowserWindow({
@@ -28,7 +32,15 @@ function createWindow() {
 
 // IPC Handlers for Gmail
 ipcMain.handle('gmail:authenticate', async () => {
-  return await gmailService.authenticate();
+  console.log('IPC: gmail:authenticate received');
+  try {
+    const result = await gmailService.authenticate();
+    console.log('IPC: gmail:authenticate success');
+    return result;
+  } catch (error) {
+    console.error('IPC: gmail:authenticate error:', error);
+    throw error;
+  }
 });
 
 

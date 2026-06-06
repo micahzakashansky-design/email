@@ -9,8 +9,8 @@ const Header = ({ activeTab, setActiveTab }) => {
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [credentials, setCredentials] = useState({ clientId: '', clientSecret: '' });
 
-  const isElectron = window && window.process && window.process.type;
-  const ipcRenderer = isElectron ? window.require('electron').ipcRenderer : null;
+  const isElectron = typeof window !== 'undefined' && window.process && window.process.type;
+  const ipcRenderer = isElectron ? window['require']('electron').ipcRenderer : null;
 
 
   const tabs = [
@@ -23,7 +23,10 @@ const Header = ({ activeTab, setActiveTab }) => {
 
 
   const handleAuthenticate = async () => {
-    if (!ipcRenderer) return;
+    if (!ipcRenderer) {
+      alert("Error: Not running in Electron or IPC is unavailable.");
+      return;
+    }
 
     setIsAuthenticating(true);
     try {

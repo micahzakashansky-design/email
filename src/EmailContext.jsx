@@ -4,8 +4,8 @@ import { MOCK_EMAILS } from './mockData';
 const EmailContext = createContext();
 
 // Check if we are running in Electron
-const isElectron = window && window.process && window.process.type;
-const ipcRenderer = isElectron ? window.require('electron').ipcRenderer : null;
+const isElectron = typeof window !== 'undefined' && window.process && window.process.type;
+const ipcRenderer = isElectron ? window['require']('electron').ipcRenderer : null;
 
 export const EmailProvider = ({ children }) => {
   const [emails, setEmails] = useState(() => {
